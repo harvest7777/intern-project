@@ -52,6 +52,11 @@ async def handle_get_weather(ctx: Context, sender: str, msg: WeatherQuery):
     response: WeatherResponse = fetch_weather(msg.latitude, msg.longitude)
     await ctx.send(destination=sender, message=response)
 
+@agent.on_rest_post(endpoint="/weather", request=WeatherQuery, response=WeatherResponse)
+async def handle_weather_request(ctx: Context, msg: WeatherQuery):
+    ctx.logger.info("Received REST request")
+    response: WeatherResponse = fetch_weather(msg.latitude, msg.longitude)
+    ctx.logger.info(response)
 
 @protocol.on_message(ChatAcknowledgement)
 async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):

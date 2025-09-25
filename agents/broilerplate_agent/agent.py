@@ -1,14 +1,10 @@
-from schemas import *
-from addresses import AGENT_ADDRESSES
-
+from models import *
+from helpers import *
 from datetime import datetime
 from uuid import uuid4
-
 import os
 from dotenv import load_dotenv
 from uagents import Context, Protocol, Agent
-from uagents.setup import fund_agent_if_low
-
 from uagents_core.contrib.protocols.chat import (
     ChatAcknowledgement,
     ChatMessage,
@@ -21,13 +17,11 @@ from uagents_core.contrib.protocols.chat import (
 load_dotenv()
 
 agent = Agent(
-    name="Orchestrator",
-    seed=os.getenv("AGENT_SEED_PHRASE"),
-    port=8000,
-    endpoint="http://localhost:8000/submit",
+    name=YOUR AGENT NAMEA,
+    seed=os.getenv(YOUR AGENT SEED),
+    port=8001,
+    mailbox=True,
 )
-
-fund_agent_if_low(str(agent.wallet.address()))
 protocol = Protocol(spec=chat_protocol_spec)
 
 @protocol.on_message(ChatMessage)
@@ -36,10 +30,11 @@ async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
         sender,
         ChatAcknowledgement(timestamp=datetime.now(), acknowledged_msg_id=msg.msg_id),
     )
-    response = "I'm the Orchestrator"
-    # is_start_of_chat: AgentContent = isinstance(msg.content[-1], StartSessionContent)
+
+    response = "YOUR AGENT RESPONSE"
+
     is_user_message = isinstance(msg.content[-1], TextContent)
-    ctx.logger.info(msg)
+
     if is_user_message:
         await ctx.send(sender, ChatMessage(
             timestamp=datetime.now(),
@@ -52,14 +47,13 @@ async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
             ]
         ))
 
-@agent.on_interval(5)
-async def handle_get_weather(ctx: Context):
-    ctx.logger.info("Trying to query weather agent")
-    await ctx.send(AGENT_ADDRESSES.WEATHER, WeatherQuery(latitude=34.0522, longitude=-118.2437))
+@agent.on_message(model=YOUR_MODEL)
+async def handle_get_weather(ctx: Context, sender: str, msg: YOUR_MODEL):
+    ctx.logger.info("Received request")
 
-@agent.on_message(model=WeatherResponse)
-async def handle_weather_response(ctx: Context, sender: str, msg: WeatherResponse):
-    ctx.logger.info(f"Received weather response: {msg}")
+@agent.on_rest_post(endpoint="/", request=YOUR_MODEL, response=YOUR_MODEL)
+async def handle_weather_request(ctx: Context, msg: YOUR_MODEL):
+    ctx.logger.info("Received REST request")
 
 @protocol.on_message(ChatAcknowledgement)
 async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
@@ -67,5 +61,6 @@ async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
 
 # I believe you have to have this to register it to AgentVerse
 agent.include(protocol, publish_manifest=True)
+
 if __name__ == "__main__":
     agent.run()
