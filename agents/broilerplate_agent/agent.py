@@ -17,7 +17,7 @@ from uagents_core.contrib.protocols.chat import (
 load_dotenv()
 
 agent = Agent(
-    name=YOUR AGENT NAMEA,
+    name=YOUR AGENT NAME,
     seed=os.getenv(YOUR AGENT SEED),
     port=8001,
     mailbox=True,
